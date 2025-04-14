@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D m_body2d; // Rigidbody2D 컴포넌트
     private GroundSensor m_groundSensor; // 땅 감지 센서
     private bool m_grounded = false; // 땅에 닿아 있는지 여부
+    // Inspector 창에서 설정 가능한 다음 스테이지 이름 (기본값: "Stage1")
+    [SerializeField] private string nextStageName = "Stage2";
 
     void Start()
     {
@@ -107,6 +110,21 @@ public class PlayerController : MonoBehaviour
         if (m_groundSensor != null)
         {
             m_groundSensor.Disable(0.1f);
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        Debug.Log("충돌한 오브젝트 태그: " + other.tag); // 충돌한 오브젝트의 태그 출력
+
+        // "NextStage" 태그를 가진 오브젝트와 충돌한 경우
+        if (other.CompareTag("NextStage"))
+        {
+            Debug.Log(nextStageName + " 씬으로 이동"); // 디버깅 메시지
+            SceneManager.LoadScene(nextStageName); // 다음 스테이지로 이동
+        }
+        else
+        {
+            Debug.Log("충돌한 태그가 'NextStage'가 아님."); // 태그가 다르면 이 메시지 출력
         }
     }
 }
