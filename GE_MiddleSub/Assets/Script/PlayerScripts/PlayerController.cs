@@ -1,14 +1,22 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float m_speed = 4.0f; // 이동 속도
+    [SerializeField] private float moveSpeed = 5f; // 이동 속도
     [SerializeField] private float m_jumpForce = 7.5f; // 점프 힘
     private Animator m_animator; // 애니메이터 컴포넌트
-    private Rigidbody2D m_body2d; // Rigidbody2D 컴포넌트
+    private Rigidbody2D rb; // Rigidbody2D 컴포넌트
     private GroundSensor m_groundSensor; // 땅 감지 센서
     private bool m_grounded = false; // 땅에 닿아 있는지 여부
+    public float speedBoostDuration = 7f; //무적 지속 전체시간
+    private int life = 3;
+
+    public PlayerHUD playerHUD;
+
+
+    private bool isGiant = false;
     // Inspector 창에서 설정 가능한 다음 스테이지 이름 (기본값: "Stage1")
     [SerializeField] private string nextStageName = "Stage2";
 
@@ -16,7 +24,7 @@ public class PlayerController : MonoBehaviour
     {
         // 컴포넌트 초기화
         m_animator = GetComponent<Animator>();
-        m_body2d = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody2D>();
         Transform sensorTransform = transform.Find("GroundSensor");
         if (sensorTransform != null)
         {
@@ -26,7 +34,7 @@ public class PlayerController : MonoBehaviour
         {
             Debug.LogError("GroundSensor를 찾을 수 없습니다!");
         }
-        m_body2d.gravityScale = 2.0f; // 중력 설정
+        rb.gravityScale = 2.0f; // 중력 설정
     }
 
     void Update()
@@ -35,11 +43,11 @@ public class PlayerController : MonoBehaviour
         UpdateGroundedStatus();
 
         // Y축 속도를 Animator에 전달
-        m_animator.SetFloat("AirSpeedY", m_body2d.velocity.y);
+        m_animator.SetFloat("AirSpeedY", rb.velocity.y);
 
         // 좌우 이동 처리
         float inputX = Input.GetAxis("Horizontal");
-        m_body2d.velocity = new Vector2(inputX * m_speed, m_body2d.velocity.y);
+        rb.velocity = new Vector2(inputX * moveSpeed, rb.velocity.y);
         HandleMovement(inputX);
 
         // 캐릭터 방향 전환
@@ -50,6 +58,8 @@ public class PlayerController : MonoBehaviour
         {
             Jump();
         }
+
+ 
     }
 
     void UpdateGroundedStatus()
@@ -100,7 +110,7 @@ public class PlayerController : MonoBehaviour
         m_animator.SetTrigger("Jump");
 
         // Rigidbody를 사용하여 점프 동작 실행
-        m_body2d.velocity = new Vector2(m_body2d.velocity.x, m_jumpForce);
+        rb.velocity = new Vector2(rb.velocity.x, m_jumpForce);
 
         // Ground 상태 false로 설정
         m_grounded = false;
@@ -112,7 +122,7 @@ public class PlayerController : MonoBehaviour
             m_groundSensor.Disable(0.1f);
         }
     }
-    private void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
         Debug.Log("충돌한 오브젝트 태그: " + other.tag); // 충돌한 오브젝트의 태그 출력
 
@@ -120,11 +130,65 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("NextStage"))
         {
             Debug.Log(nextStageName + " 씬으로 이동"); // 디버깅 메시지
-            SceneManager.LoadScene(nextStageName); // 다음 스테이지로 이동
+            SceneManager.LoadScene(other.name); // 다음 스테이지로 이동
         }
-        else
+        //리스폰
+        if (other.CompareTag("Respawn"))
         {
-            Debug.Log("충돌한 태그가 'NextStage'가 아님."); // 태그가 다르면 이 메시지 출력
+            if (isGiant)
+            {
+                Destroy(other.gameObject);
+            }
+            else
+            {
+                if (life > 1)
+                {
+                    playerHUD.TakeDamage();
+                    life--;
+                }
+                else
+                {
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                }
+            }
+                
         }
+        //무적모드
+        if (other.CompareTag("PawerUp"))
+        {
+            isGiant = true;
+            Invoke("PowerUpBack", speedBoostDuration);
+           
+            Destroy(other.gameObject);
+        }
+        if (other.CompareTag("SpeedUp"))
+        {
+            StartCoroutine(SpeedBoost());
+            Destroy(other.gameObject); // 아이템 삭제
+        }
+        if (other.CompareTag("heal"))
+        {
+            life += 1;
+            if (life > 3)
+            {
+                life = 3;
+            }
+            playerHUD.PlusLife();
+            Destroy(other.gameObject); // 아이템 삭제
+        }
+
+    }
+
+    private void PowerUpBack()
+    {
+        isGiant = false;
+    }
+
+    IEnumerator SpeedBoost()
+    {
+        float originalSpeed = moveSpeed;
+        moveSpeed *= 3f; // 속도 증가 (원하는 값으로 변경 가능)
+        yield return new WaitForSeconds(speedBoostDuration); // 지속 시간 대기
+        moveSpeed = originalSpeed; // 원래 속도로 복구
     }
 }

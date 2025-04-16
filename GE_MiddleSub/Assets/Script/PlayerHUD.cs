@@ -27,6 +27,16 @@ public class PlayerHUD : MonoBehaviour
         UpdateLifeUI();
     }
 
+    public void PlusLife()
+    {
+        playerLives += 1;
+        if(playerLives > 3) 
+        { 
+            playerLives = 3;
+        }
+        UpdateLifeUI();
+    }
+
     private void UpdateLifeUI()
     {
         for (int i = 0; i < heartIcons.Length; i++)
