@@ -10,11 +10,15 @@ TagManager:
   - PawerUp
   - SpeedUp
   - heal
+  - Boundary
+  - Obstacle
+  - JumpUp
+  - Enemy
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
   - 

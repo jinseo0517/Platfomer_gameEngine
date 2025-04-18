@@ -11,11 +11,12 @@ public class PlayerController : MonoBehaviour
     private GroundSensor m_groundSensor; // 땅 감지 센서
     private bool m_grounded = false; // 땅에 닿아 있는지 여부
     public float speedBoostDuration = 7f; //무적 지속 전체시간
+    public GameObject m_AttackCollider; // 공격 콜라이더
     private int life = 3;
 
     public PlayerHUD playerHUD;
 
-
+    [SerializeField] private bool isAttackable = true;
     private bool isGiant = false;
     // Inspector 창에서 설정 가능한 다음 스테이지 이름 (기본값: "Stage1")
     [SerializeField] private string nextStageName = "Stage2";
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
         // 컴포넌트 초기화
         m_animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        m_AttackCollider.SetActive(false);
         Transform sensorTransform = transform.Find("GroundSensor");
         if (sensorTransform != null)
         {
@@ -59,7 +61,16 @@ public class PlayerController : MonoBehaviour
             Jump();
         }
 
- 
+        if (Input.GetKeyDown(KeyCode.Return) && isAttackable)
+        {
+            Attack();
+        }
+    }
+
+    void Attack()
+    {
+        m_animator.SetTrigger("Attack1");
+        m_AttackCollider.SetActive(true);
     }
 
     void UpdateGroundedStatus()
@@ -143,7 +154,8 @@ public class PlayerController : MonoBehaviour
             {
                 if (life > 1)
                 {
-                    playerHUD.TakeDamage();
+                    //Debug.Log("1");
+                    //playerHUD.TakeDamage();
                     life--;
                 }
                 else
@@ -177,6 +189,19 @@ public class PlayerController : MonoBehaviour
             Destroy(other.gameObject); // 아이템 삭제
         }
 
+        //점프력증가 아이템
+        if (other.CompareTag("JumpUp"))
+        {
+            m_jumpForce *= 2f; // 점프력 두 배 증가
+            Invoke("ResetJumpForce", 5f); // 5초 후 원래 값으로 복구
+            Destroy(other.gameObject); // 아이템 삭제
+        }
+
+    }
+
+    void ResetJumpForce()
+    {
+        m_jumpForce /= 2f; // 원래 점프력으로 복구
     }
 
     private void PowerUpBack()
