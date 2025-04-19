@@ -44,14 +44,6 @@ public class MainMenu : MonoBehaviour
 
     public void GoToMainMenu()
     {
-        Debug.Log("메인 메뉴로 이동 시도");
-        if (SceneManager.GetSceneByName("MainMenu").IsValid())
-        {
-            SceneManager.LoadScene("MainMenu");
-        }
-        else
-        {
-            Debug.LogError("MainMenu 씬이 Build Settings에 추가되어 있지 않습니다!");
-        }
+        SceneManager.LoadScene("MainMenu");
     }
 }
