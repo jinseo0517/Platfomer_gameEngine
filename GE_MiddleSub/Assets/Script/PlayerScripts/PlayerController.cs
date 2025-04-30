@@ -4,6 +4,8 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
+    float score;
+
     [SerializeField] private float moveSpeed = 5f; // 이동 속도
     [SerializeField] private float m_jumpForce = 7.5f; // 점프 힘
 
@@ -22,6 +24,10 @@ public class PlayerController : MonoBehaviour
     private bool isAttacking = false; // 공격 상태
     [SerializeField] private string nextStageName = "Stage2"; // 다음 스테이지 이름
 
+    private void Awake()
+    {
+        score = 1000f;
+    }
     void Start()
     {
         m_animator = GetComponent<Animator>();
@@ -60,6 +66,8 @@ public class PlayerController : MonoBehaviour
         {
             Attack();
         }
+
+        score -= Time.deltaTime;
     }
 
     void Attack()
@@ -137,6 +145,7 @@ public class PlayerController : MonoBehaviour
 
         if (other.CompareTag("NextStage"))
         {
+            HighScore.TrySet(SceneManager.GetActiveScene().buildIndex, (int)score);
             SceneManager.LoadScene(nextStageName);
         }
 
