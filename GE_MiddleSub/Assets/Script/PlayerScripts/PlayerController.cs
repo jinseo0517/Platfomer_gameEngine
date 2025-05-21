@@ -145,8 +145,9 @@ public class PlayerController : MonoBehaviour
 
         if (other.CompareTag("NextStage"))
         {
-            HighScore.TrySet(SceneManager.GetActiveScene().buildIndex, (int)score);
+            //HighScore.TrySet(SceneManager.GetActiveScene().buildIndex, (int)score);
             SceneManager.LoadScene(nextStageName);
+            StageResulSaver.SaveStage (SceneManager.GetActiveScene().buildIndex, (int)score);
         }
 
         if (other.CompareTag("Respawn"))
